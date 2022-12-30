@@ -1,0 +1,11 @@
+[package]
+name = "corkboard"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.68"
+chrono = "0.4.23"
+reqwest = {version = "0.11.13", features = ["blocking"]}
+roxmltree = "0.16.0"
+rusqlite = "0.28.0"

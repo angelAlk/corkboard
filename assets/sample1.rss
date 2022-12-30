@@ -1,0 +1,17 @@
+<rss version="2.0">
+	<channel>
+		<title>Sample feed</title>
+		<link>http://localhost</link>
+		<description>sample feed description</description>
+		<language>en</language>
+		<item>
+			<title>An article</title>
+			<description>about something</description>
+			<link>http://localhost/zz</link>
+		</item>
+		<item>
+			<title>Another article</title>
+			<link>http://localhost/aa</link>
+		</item>
+	</channel>
+</rss>
