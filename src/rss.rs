@@ -16,7 +16,7 @@
 //! ```
 
 use chrono::{
-	offset::FixedOffset,
+	offset::Utc,
 	DateTime
 };
 use std::collections::hash_map::DefaultHasher;
@@ -26,7 +26,7 @@ use std::hash::{Hasher, Hash};
 ///
 ///It's only ensured that either a description tag or a title tag
 ///will be present in it.
-#[derive(Debug)]
+#[derive(Debug, Eq)]
 pub struct Item {
 	///The title of the item or in it's absence the description
 	pub title_or_description: String,
@@ -36,7 +36,7 @@ pub struct Item {
 	///URL to the item,blog post or entry
 	pub link: Option<String>,
 	///Date that the item was published
-	pub pub_date: Option<DateTime<FixedOffset>>,
+	pub pub_date: Option<DateTime<Utc>>,
 	///Whether the user has read or not this item
 	pub read: bool
 }
@@ -44,8 +44,8 @@ impl Item {
 
 	///Create a new not yet read item.
 	///
-	///We are using the default hasher for now but should probably move to fixed one (say sha256).
-	pub fn new(title_or_desc: String, link: Option<String>, pub_date: Option<DateTime<FixedOffset>>) -> Self {
+	///We are using the default hasher for now but should probably move to a fixed one (say sha256).
+	pub fn new(title_or_desc: String, link: Option<String>, pub_date: Option<DateTime<Utc>>) -> Self {
 		let mut s = DefaultHasher::new();
 		title_or_desc.hash(&mut s);
 		let hash = s.finish();
@@ -57,6 +57,11 @@ impl Item {
 			pub_date,
 			read: false
 		}
+	}
+}
+impl PartialEq for Item {
+	fn eq(&self, other: &Self) -> bool {
+		self.title_or_description_hash == other.title_or_description_hash
 	}
 }
 
@@ -73,7 +78,7 @@ pub struct Channel {
 	pub description:String,
 	///Date that the channel last changed, if the rss one is the same or older than
 	///then one on our DB then we don't need to do anything.
-	pub last_build_date: Option<DateTime<FixedOffset>>,
+	pub last_build_date: Option<DateTime<Utc>>,
 	///Items present in the channel
 	pub items: Vec<Item>
 }

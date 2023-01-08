@@ -1,7 +1,6 @@
 //! Parsing the RSS XML into structs we can handle
 
-use anyhow;
-use chrono::{DateTime, offset::FixedOffset};
+use chrono::{DateTime, offset::Utc};
 use roxmltree::{Node};
 use std::{fmt, error};
 use crate::rss::{Channel, Item};
@@ -52,8 +51,9 @@ fn process_item(item_tag: &Node) -> Option<Item> {
 
 	let link:Option<_> = get_text_from_child(item_tag, "link");
 
-	let pub_date:Option<_> = get_text_from_child(item_tag, "pubDate")
-		.and_then(|date_s| DateTime::parse_from_rfc2822(&date_s).ok());
+	let pub_date:Option<DateTime<Utc>> = get_text_from_child(item_tag, "pubDate")
+		.and_then(|date_s| DateTime::parse_from_rfc2822(&date_s).ok())
+		.and_then(|fixed_date| Some(DateTime::<Utc>::from(fixed_date)));
 
 	Some(Item::new(title_or_description, link, pub_date))
 }
@@ -61,7 +61,7 @@ fn process_item(item_tag: &Node) -> Option<Item> {
 /// Turns an xml string into a Channel struct, if the xml is misformed
 /// then an error is returned.
 pub fn xml_to_rss (xml_source: &str) -> anyhow::Result<Channel> {
-	let xml_tree = roxmltree::Document::parse(&xml_source)?;
+	let xml_tree = roxmltree::Document::parse(xml_source)?;
 	let root = xml_tree.root_element();//RSS element
 	
 	if root.tag_name().name() != "rss" {
@@ -77,14 +77,13 @@ pub fn xml_to_rss (xml_source: &str) -> anyhow::Result<Channel> {
 	let description = get_text_from_child(&channel_tag, "description")
 		.ok_or(XmlError::NoDesc)?;
 
-	let last_build_date:Option<DateTime<FixedOffset>> = get_text_from_child(&channel_tag, "lastBuildDate")
-		.and_then(|date_s| DateTime::parse_from_rfc2822(&date_s).ok());
+	let last_build_date:Option<DateTime<_>> = get_text_from_child(&channel_tag, "lastBuildDate")
+		.and_then(|date_s| DateTime::parse_from_rfc2822(&date_s).ok())
+		.and_then(|fixed_date| Some(DateTime::<Utc>::from(fixed_date)));
 
 	let items:Vec<Item> = channel_tag .children()
 		.filter(|c| c.tag_name().name() == "item")
-		.map(|i| process_item(&i))
-		.filter(|i| i.is_some())
-		.map(|i| i.unwrap())
+		.flat_map(|i| process_item(&i))
 		.collect();
 
 	Ok(Channel {
