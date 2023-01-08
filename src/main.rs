@@ -3,11 +3,14 @@
 //! Update feeds and keep track of which articles have been read
 //! (without being too intrusive with what hasn't been)
 //!
-//! up <- update rss feeds in the db, show new items
-//! new <- show items not yet read
-//! mark <item-id> <- mark an item as read
-//! add <url> <- add a new rss feed
-//! remove <id> <- remove a feed
+//! ```text
+//! add <url>		<- Add a new RSS feed to the app.
+//! up				<- Update all feeds, show the new articles.
+//! mark <item>		<- Mark article/item as read.
+//! new				<- Show all articles that haven't been marked.
+//! feeds			<- List all the feeds in the app.
+//! remove <url>	<- Remove a feed from the app.
+//! ```
 
 pub mod rss;
 mod xml_handler;
@@ -43,7 +46,7 @@ fn run_operation(op: Operation) -> Result<()> {
 	Ok(())
 }
 
-///Adds a feed to the database
+///Add a feed and all of it's items into the database
 fn add(database: &Database, url: &str) -> Result<()> {
 	let xml_feed = reqwest::blocking::get(url)
 		.with_context(|| format!("Network request to feed failed for: {}", url))?
