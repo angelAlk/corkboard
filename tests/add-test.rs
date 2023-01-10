@@ -2,7 +2,7 @@ use rusqlite::{Connection, params};
 use std::{
 	fs,
 	path::Path,
-	process::Command
+	process::{Command, Stdio}
 };
 
 ///REQUIRES miniserve
@@ -17,12 +17,13 @@ fn add_test() {
 	//Start a server to simulate an rss feed
 	let mut miniserve = Command::new("miniserve")
 		.args(&["./assets/sample1.rss"])
+		.stdout(Stdio::null())
 		.spawn()
 		.expect("Failed to launch miniserve");
 
 	//run our program
 	Command::new("cargo")
-		.args(&["run", "--", "add", "http://localhost:8080"])
+		.args(&["run", "--quiet", "--", "add", "http://localhost:8080"])
 		.output()
 		.expect("Cargo run failed");
 

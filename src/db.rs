@@ -21,7 +21,7 @@ impl Database {
 			"CREATE TABLE IF NOT EXISTS channels (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				title VARCHAR(256),
-				link VARCHAR(256),
+				link VARCHAR(256) UNIQUE,
 				description TEXT,
 				last_build_date VARCHAR
 			);", [])?;
@@ -48,7 +48,7 @@ impl Database {
 			FROM channels;"
 		)?;
 
-		let channels = statement.query_map([], |row| {
+		let channels:Result<Vec<Channel>, rusqlite::Error> = statement.query_map([], |row| {
 			Ok(Channel {
 				title: row.get(0)?,
 				link: row.get(1)?,
@@ -56,9 +56,14 @@ impl Database {
 				last_build_date: row.get(3)?,
 				items: Vec::new()
 			})
-		})?;
+		})?.collect();
+		let mut channels = channels?;
 
-		Ok(channels.flatten().collect())
+		for c in channels.iter_mut() {
+			c.items = self.get_items(&c)?;
+		}
+
+		Ok(channels)
 	}
 
 	///Returns the items in the database that belong to a channel.
@@ -101,12 +106,15 @@ impl Database {
 	}
 
 	//Adds new items to the database, associates them with the channel passed.
+	//Note that if the items have the same hash as another in the database
+	//then the insertion is ignored.
 	pub fn add_items(&self, channel: &Channel, items: &[Item]) -> Result<()> {
 		let channel_id:u64 = self.db.prepare("SELECT id FROM channels WHERE link = (?);")?
 			.query_row([&channel.link], |row| {row.get(0)})?;
 
 		let mut statement = self.db.prepare(
-			"INSERT INTO items (hash, title_or_desc, url, pub_date, read, channel)
+			"INSERT OR IGNORE
+			INTO items (hash, title_or_desc, url, pub_date, read, channel)
 			VALUES (?, ?, ?, ?, ?, ?);"
 		)?;
 

@@ -1,0 +1,20 @@
+<rss version="2.0">
+	<channel>
+		<title>Test blog please ignore</title>
+		<link>http://localhost/sample2</link>
+		<description>Channel for a test post</description>
+		<lastBuildDate>Mon, 09 Jan 2023 12:00:00 GMT</lastBuildDate>
+		<item>
+			<title>Test post please ignore</title>
+		</item>
+		<item>
+			<description>This post is about people doing people things</description>
+			<link>http://doesnotwork.zzzzzzz</link>
+		</item>
+		<item>
+			<title>First post</title>
+			<description>Not sure what to put in this field :/</description>
+			<pubDate>Mon, 02 Jan 2023 12:00:00 GMT</pubDate>
+		</item>
+	</channel>
+</rss>
