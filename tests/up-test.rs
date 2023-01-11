@@ -1,46 +1,24 @@
-use rusqlite::{Connection, params};
-use std::{
-	fs,
-	path::Path,
-	process::{Command, Stdio}
-};
+use rusqlite::Connection;
+mod utils;
+use utils::*;
 
-///REQUIRES miniserve
 #[test]
 fn up_test() {
-	//First ensure the database file doesn't exist
-	let db_path = Path::new("./corkdb");
-	if db_path.exists() {
-		fs::remove_file(db_path).unwrap();
-	}
+	ensure_new_database();
 
-	//Start RSS feed at a first date
-	let mut first_feed = Command::new("miniserve")
-		.args(&["./assets/sample2.rss"])
-		.stdout(Stdio::null())
-		.spawn()
-		.expect("Miniserve failed");
+	//start the old feed
+	let mut first_feed = launch_miniserve("./assets/sample2.rss", None);
 
 	//Add the feed to our program
-	Command::new("cargo")
-		.args(&["run", "--quiet", "--", "add","http://localhost:8080" ])
-		.output()
-		.expect("Cargo run failed");
+	run_cork(&["add","http://localhost:8080"]);
 
-	//kill the first feed and start the newer feed
-	first_feed.kill();
-	let mut second_feed = Command::new("miniserve")
-		.args(&["./assets/sample2-next-week.rss"])
-		.stdout(Stdio::null())
-		.spawn()
-		.expect("Miniserve failed");
+	//Release the port for the newer feed
+	first_feed.kill().unwrap();
+	let mut newer_feed = launch_miniserve("./assets/sample2-next-week.rss", None);
 
 	//Search for updates
-	let output = Command::new("cargo")
-		.args(&["run", "--quiet", "--", "up"])
-		.output()
-		.expect("Cargo run failed");
-	let output = std::str::from_utf8(&output.stdout).expect("Output could not be read as a string");
+	let output = run_cork(&["up"]);
+	let output = std::str::from_utf8(&output.stdout).expect("Could not read output as string");
 	//The output must always have the link to the item (if it exists)
 	assert!(output.contains("http://unique"));
 
@@ -52,5 +30,5 @@ fn up_test() {
 		.expect("DB failed to get row");
 	assert_eq!(&url_in_database, "http://unique");
 
-	second_feed.kill();
+	newer_feed.kill().unwrap();
 }

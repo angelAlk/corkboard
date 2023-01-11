@@ -6,7 +6,8 @@ use anyhow::Result;
 pub enum Operation {
 	///Add a new channel to the database.
 	Add(String),
-	Up
+	Up,
+	Feeds
 }
 
 #[derive(Debug)]
@@ -32,6 +33,7 @@ pub fn parse_arguments(string_args:Vec<String>) -> Result<Operation> {
 	match string_args[1].as_str() {
 		"add" if string_args.len() >= 3 => Ok(Operation::Add(string_args[2].clone())),
 		"up" => Ok(Operation::Up),
+		"feeds" => Ok(Operation::Feeds),
 		_ => Err(ParseErr::NotACommand.into())
 	}
 }

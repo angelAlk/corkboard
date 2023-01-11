@@ -42,6 +42,7 @@ fn run_operation(op: Operation) -> Result<()> {
 	match op {
 		Operation::Add(url) => add(&database, &url),
 		Operation::Up => up(&database),
+		Operation::Feeds => feeds(&database),
 		_ => Err(anyhow::anyhow!("Could not match the operation passed"))
 	}?;
 
@@ -81,9 +82,8 @@ fn add(database: &Database, url: &str) -> Result<()> {
 //TODO: Add message if nothing is new
 fn up(database: &Database) -> Result<()> {
 	let client = Client::new();
-	let mut new_items: Vec<Item> = Vec::new();
 
-	let channels = database.all_channels()
+	let channels = database.all_channels_with_items()
 		.context("Failed to get all the channels for the update.")?;
 
 	//here we would like to ignore the error if one fails,
@@ -110,7 +110,7 @@ fn up(database: &Database) -> Result<()> {
 			continue ;
 		}
 
-		if let Err(e) = database.add_items(&c, &new_items) {
+		if let Err(_) = database.add_items(&c, &new_items) {
 			eprintln!("Could not insert new items into database");
 			continue ;
 		}
@@ -122,10 +122,23 @@ fn up(database: &Database) -> Result<()> {
 	}
 	Ok(())
 }
-
 fn get_feed(url: &str, req_client: &Client) -> Result<Channel> {
 	let xml_feed = req_client.get(url)
 		.send().with_context(|| format!("Request to:{} failed", url))?
 		.text().with_context(|| format!("Response from:{}, could not be turned into text", url))?;
 	xml_to_rss(&xml_feed).context("Could not parse XML into RSS")
+}
+
+///List all feeds in the database.
+fn feeds(database: &Database) -> Result<()> {
+	let channels = database.all_channels()
+		.context("Could not get channels from the database")?;
+	if channels.len() == 0 {
+		println!("No RSS feeds in the database");
+	} else {
+		for c in channels {
+			println!("{}", c.link);
+		}
+	}
+	Ok(())
 }

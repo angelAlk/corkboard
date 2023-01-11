@@ -41,14 +41,13 @@ impl Database {
 		Ok(Self {db})
 	}
 
-	///Get all the channels from the database
+	///Get all the channels from the database (without their respective items)
 	pub fn all_channels(&self) -> Result<Vec<Channel>> {
 		let mut statement = self.db.prepare(
 			"SELECT title, link, description, last_build_date
 			FROM channels;"
 		)?;
-
-		let channels:Result<Vec<Channel>, rusqlite::Error> = statement.query_map([], |row| {
+		let channels = statement.query_map([], |row| {
 			Ok(Channel {
 				title: row.get(0)?,
 				link: row.get(1)?,
@@ -56,8 +55,14 @@ impl Database {
 				last_build_date: row.get(3)?,
 				items: Vec::new()
 			})
-		})?.collect();
-		let mut channels = channels?;
+		})?;
+
+		Ok(channels.flatten().collect())
+	}
+
+	///Get all the channels from the database (with their items)
+	pub fn all_channels_with_items(&self) -> Result<Vec<Channel>> {
+		let mut channels = self.all_channels()?;
 
 		for c in channels.iter_mut() {
 			c.items = self.get_items(&c)?;
