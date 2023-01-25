@@ -32,7 +32,7 @@ pub struct Item {
 	pub title_or_description: String,
 	///hash of the title_or_description key. Will act as the primary
 	///key of Item in our DB (alongside the channel id)
-	pub title_or_description_hash:u64,
+	pub title_or_description_hash:String,
 	///URL to the item,blog post or entry
 	pub link: Option<String>,
 	///Date that the item was published
@@ -52,7 +52,7 @@ impl Item {
 
 		Self {
 			title_or_description: title_or_desc,
-			title_or_description_hash: hash,
+			title_or_description_hash: format!("{:016x}", hash),
 			link,
 			pub_date,
 			read: false
@@ -62,6 +62,14 @@ impl Item {
 impl PartialEq for Item {
 	fn eq(&self, other: &Self) -> bool {
 		self.title_or_description_hash == other.title_or_description_hash
+	}
+}
+impl std::fmt::Display for Item {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{} -> [{}] {}",
+			   self.title_or_description_hash,
+			   self.link.as_ref().unwrap_or(&String::from("No link")),
+			   self.title_or_description)
 	}
 }
 

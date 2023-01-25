@@ -43,6 +43,8 @@ fn run_operation(op: Operation) -> Result<()> {
 		Operation::Add(url) => add(&database, &url),
 		Operation::Up => up(&database),
 		Operation::Feeds => feeds(&database),
+		Operation::New => new(&database),
+		Operation::Mark(hash) => mark(&database, &hash),
 		_ => Err(anyhow::anyhow!("Could not match the operation passed"))
 	}?;
 
@@ -122,6 +124,7 @@ fn up(database: &Database) -> Result<()> {
 	}
 	Ok(())
 }
+
 fn get_feed(url: &str, req_client: &Client) -> Result<Channel> {
 	let xml_feed = req_client.get(url)
 		.send().with_context(|| format!("Request to:{} failed", url))?
@@ -141,4 +144,19 @@ fn feeds(database: &Database) -> Result<()> {
 		}
 	}
 	Ok(())
+}
+
+///Show all the items not yet marked (read by the user)
+fn new(database: &Database) -> Result<()> {
+	let items = database.all_unmarked_items().context("Could not get items from database")?;
+	for i in items {
+		println!("{}", i);
+	}
+	Ok(())
+}
+
+///Mark an item in the database as read.
+fn mark(database: &Database, hash_string:&str) -> Result<()> {
+	database.mark_as_read(hash_string, true)
+		.context("Could not mark the article")
 }

@@ -6,8 +6,14 @@ use anyhow::Result;
 pub enum Operation {
 	///Add a new channel to the database.
 	Add(String),
+	///Check the updates in the feeds
 	Up,
-	Feeds
+	///List all the feeds in the database
+	Feeds,
+	///Show which feeds are new
+	New,
+	///Mark a feed as read
+	Mark(String)
 }
 
 #[derive(Debug)]
@@ -34,12 +40,8 @@ pub fn parse_arguments(string_args:Vec<String>) -> Result<Operation> {
 		"add" if string_args.len() >= 3 => Ok(Operation::Add(string_args[2].clone())),
 		"up" => Ok(Operation::Up),
 		"feeds" => Ok(Operation::Feeds),
+		"new" => Ok(Operation::New),
+		"mark" if string_args.len() >= 3 => Ok(Operation::Mark(string_args[2].clone())),
 		_ => Err(ParseErr::NotACommand.into())
 	}
 }
-
-// up <- update rss feeds in the db, show new items
-// new <- show items not yet read
-// mark <item-id> <- mark an item as read
-// add <url> <- add a new rss feed
-// remove <id> <- remove a feed

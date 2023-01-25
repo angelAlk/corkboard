@@ -1,7 +1,6 @@
 //! Interface into a sqlite database
 
-use anyhow::Result;
-use std::str::FromStr;
+use anyhow::{anyhow, Result};
 use rusqlite::{Connection, params};
 
 use crate::rss::{Channel, Item};
@@ -81,8 +80,7 @@ impl Database {
 
 		let items = statement.query_map([&channel.link], |row| {
 			Ok(Item {
-				//canzer
-				title_or_description_hash: u64::from_str(&row.get::<usize, String>(0)?).unwrap(),
+				title_or_description_hash: row.get(0)?,
 				title_or_description: row.get(1)?,
 				link: row.get(2)?,
 				pub_date: row.get(3)?,
@@ -125,7 +123,7 @@ impl Database {
 
 		for i in items {
 			statement.execute(rusqlite::params![
-				i.title_or_description_hash.to_string(),
+				i.title_or_description_hash,
 				i.title_or_description,
 				i.link,
 				i.pub_date,
@@ -135,5 +133,41 @@ impl Database {
 		}
 
 		Ok(())
+	}
+
+	///Return all the items from the database that have not been read.
+	pub fn all_unmarked_items(&self) -> Result<Vec<Item>> {
+		let mut statement = self.db.prepare("SELECT hash, title_or_desc, url, pub_date, read
+						FROM items
+						WHERE read=0;"
+		)?;
+
+		let items = statement.query_map([], |row| {
+			Ok(Item {
+				title_or_description_hash: row.get(0)?,
+				title_or_description: row.get(1)?,
+				link: row.get(2)?,
+				pub_date: row.get(3)?,
+				read: row.get(4)?
+			})
+		})?;
+
+		Ok(items.flatten().collect())
+	}
+
+	//Mark item as read given it's hash
+	pub fn mark_as_read(&self, hash: &str, read_state:bool) -> Result<()> {
+		let mut statement = self.db.prepare(
+			"UPDATE items
+			SET read=(?)
+			WHERE hash=(?);"
+		)?;
+		let rows_changed = statement.execute(params![isize::from(read_state),hash])?;
+
+		if rows_changed == 1 {
+			Ok(())
+		} else {
+			Err(anyhow!("Expected to change a single row, {} rows changed.", rows_changed))
+		}
 	}
 }

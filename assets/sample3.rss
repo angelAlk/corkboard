@@ -1,0 +1,15 @@
+<rss version="2.0">
+	<channel>
+		<title>Simpler feed</title>
+		<link>http://localhost/sample3</link>
+		<description>Channel for a test post</description>
+		<lastBuildDate>Mon, 09 Jan 2023 12:00:00 GMT</lastBuildDate>
+		<item>
+			<title>azz</title>
+		</item>
+		<item>
+			<title>bzz</title>
+			<link>http://doesnotwork.zzzzzzz</link>
+		</item>
+	</channel>
+</rss>
