@@ -34,7 +34,7 @@ impl Database {
 				pub_date VARCHAR,
 				read BOOLEAN NOT NULL,
 				channel INTEGER NOT NULL,
-				FOREIGN KEY(channel) REFERENCES channels(id)
+				FOREIGN KEY(channel) REFERENCES channels(id) ON DELETE CASCADE
 			);", [])?;
 
 		Ok(Self {db})
@@ -155,7 +155,7 @@ impl Database {
 		Ok(items.flatten().collect())
 	}
 
-	//Mark item as read given it's hash
+	///Mark item as read given it's hash
 	pub fn mark_as_read(&self, hash: &str, read_state:bool) -> Result<()> {
 		let mut statement = self.db.prepare(
 			"UPDATE items
@@ -168,6 +168,19 @@ impl Database {
 			Ok(())
 		} else {
 			Err(anyhow!("Expected to change a single row, {} rows changed.", rows_changed))
+		}
+	}
+
+	pub fn remove_channel(&self, feed_url: &str) -> Result<()> {
+		let mut statement = self.db.prepare(
+			"DELETE FROM channels WHERE link=(?);"
+		)?;
+		let rows_deleted = statement.execute(params![feed_url])?;
+
+		if rows_deleted == 1 {
+			Ok(())
+		} else {
+			Err(anyhow!("Expected to delete a single row, {} rows deleted.", rows_deleted))
 		}
 	}
 }

@@ -45,7 +45,8 @@ fn run_operation(op: Operation) -> Result<()> {
 		Operation::Feeds => feeds(&database),
 		Operation::New => new(&database),
 		Operation::Mark(hash) => mark(&database, &hash),
-		_ => Err(anyhow::anyhow!("Could not match the operation passed"))
+		Operation::Remove(feed_url) => remove(&database, &feed_url)
+		//,_ => Err(anyhow::anyhow!("Could not match the operation passed"))
 	}?;
 
 	Ok(())
@@ -159,4 +160,10 @@ fn new(database: &Database) -> Result<()> {
 fn mark(database: &Database, hash_string:&str) -> Result<()> {
 	database.mark_as_read(hash_string, true)
 		.context("Could not mark the article")
+}
+
+//Remove feed and it's items from the database
+fn remove(database: &Database, url:&str) -> Result<()> {
+	database.remove_channel(url)
+		.context("Removing for channel failed")
 }
