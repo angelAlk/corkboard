@@ -19,6 +19,7 @@ mod cli;
 
 use anyhow::{Context, Result};
 use reqwest::blocking::Client;
+use url::Url;
 
 use std::env::args;
 use crate::{
@@ -52,12 +53,25 @@ fn run_operation(op: Operation) -> Result<()> {
 	Ok(())
 }
 
+///Request a feed with url parsing and error handling
+fn request_feed(feed_source: &str) -> Result<String> {
+	let parsed_source = Url::parse(feed_source)?;
+
+	reqwest::blocking::get(parsed_source)
+		.with_context(|| format!("Network request to feed failed for: {}", feed_source))?
+		.text()
+		.with_context(|| "Could not turn feed into a string")
+}
+
 ///Add a feed and all of it's items into the database
 fn add(database: &Database, url: &str) -> Result<()> {
-	let xml_feed = reqwest::blocking::get(url)
-		.with_context(|| format!("Network request to feed failed for: {}", url))?
-		.text()
-		.with_context(|| "Could not turn feed into a string")?;
+
+	//Handling possibly incomplete urls passed by user.
+	//The user url is preferred to an https base and https
+	//is preferred to an http one.
+	let xml_feed:String = request_feed(url)
+		.or_else(|_| { request_feed(&format!("{}{}", "https://", url)) })
+		.or_else(|_| { request_feed(&format!("{}{}", "http://", url)) })?;
 
 	let mut channel = xml_to_rss(&xml_feed)
 		.with_context(|| "Could not process xml")?;

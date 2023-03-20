@@ -172,10 +172,18 @@ impl Database {
 	}
 
 	pub fn remove_channel(&self, feed_url: &str) -> Result<()> {
+		//SUPPOSITION: all feeds that are equal except in protocol are equal in content.
 		let mut statement = self.db.prepare(
-			"DELETE FROM channels WHERE link=(?);"
+			"DELETE FROM channels WHERE link=(?1) OR link=(?2) OR link=(?3);"
 		)?;
-		let rows_deleted = statement.execute(params![feed_url])?;
+
+		//BELIEVE rusqlite acting weirdly
+		//HACKY workaround, passing the complete urls
+		let rows_deleted = statement.execute(params![
+			feed_url,
+			&format!("http://{}", feed_url),
+			&format!("https://{}", feed_url)
+		])?;
 
 		if rows_deleted == 1 {
 			Ok(())
