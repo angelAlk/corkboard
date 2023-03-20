@@ -7,14 +7,14 @@ fn up_test() {
 	ensure_new_database();
 
 	//start the old feed
-	let mut first_feed = launch_miniserve("./assets/sample2.rss", None);
+	let mut first_feed = Miniserve::launch("./assets/sample2.rss", None);
 
 	//Add the feed to our program
 	run_cork(&["add","http://localhost:8080"]);
 
 	//Release the port for the newer feed
-	first_feed.kill().unwrap();
-	let mut newer_feed = launch_miniserve("./assets/sample2-next-week.rss", None);
+	first_feed.kill();
+	let mut newer_feed = Miniserve::launch("./assets/sample2-next-week.rss", None);
 
 	//Search for updates
 	let output = run_cork(&["up"]);
@@ -30,5 +30,5 @@ fn up_test() {
 		.expect("DB failed to get row");
 	assert_eq!(&url_in_database, "http://unique");
 
-	newer_feed.kill().unwrap();
+	newer_feed.kill();
 }

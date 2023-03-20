@@ -7,9 +7,9 @@ fn feeds_test() {
 	ensure_new_database();
 
 	for i in 0..=12 {
-		let mut f = launch_miniserve("./assets/sample1.rss", Some(&["--port", &format!("80{i:02}")]));
+		let mut f = Miniserve::launch("./assets/sample1.rss", Some(&["--port", &format!("80{i:02}")]));
 		run_cork(&["add", &format!("http://localhost:80{i:02}")]);
-		f.kill().unwrap();
+		f.kill();
 	}
 
 	let output = run_cork(&["feeds"]);

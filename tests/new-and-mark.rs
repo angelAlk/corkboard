@@ -20,7 +20,7 @@ fn new_then_mark() {
 	ensure_new_database();
 
 	//start the source feed and add it to the program
-	let mut feed = launch_miniserve("./assets/sample3.rss", None);
+	let mut feed = Miniserve::launch("./assets/sample3.rss", None);
 	let add_correct = run_cork(&["add", "http://localhost:8080"]).status.success();
 	assert!(add_correct);
 
@@ -47,5 +47,5 @@ fn new_then_mark() {
 	assert!(!second_articles.contains("azz"));
 
 	//kill the feed source
-	feed.kill().unwrap();
+	feed.kill();
 }
