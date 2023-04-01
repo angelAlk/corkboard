@@ -45,7 +45,7 @@ fn run_operation(op: Operation) -> Result<()> {
 		Operation::Up => up(&database),
 		Operation::Feeds => feeds(&database),
 		Operation::New => new(&database),
-		Operation::Mark(hash) => mark(&database, &hash),
+		Operation::Mark(hashes) => mark(&database, &hashes),
 		Operation::Remove(feed_url) => remove(&database, &feed_url)
 		//,_ => Err(anyhow::anyhow!("Could not match the operation passed"))
 	}?;
@@ -171,9 +171,12 @@ fn new(database: &Database) -> Result<()> {
 }
 
 ///Mark an item in the database as read.
-fn mark(database: &Database, hash_string:&str) -> Result<()> {
-	database.mark_as_read(hash_string, true)
-		.context("Could not mark the article")
+fn mark(database: &Database, hash_string:&[String]) -> Result<()> {
+	for hash in hash_string {
+		database.mark_as_read(hash, true)
+			.context("Could not mark the article")?;
+	}
+	Ok(())
 }
 
 //Remove feed and it's items from the database

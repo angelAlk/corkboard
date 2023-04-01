@@ -1,5 +1,7 @@
 use std::{
+	collections::hash_map::DefaultHasher,
 	fs,
+	hash::{Hash, Hasher},
 	path::Path,
 	process::{Child, Command, Stdio, Output}
 };
@@ -66,4 +68,12 @@ pub fn count_items(db: &Connection) -> i64 {
 		.flatten()
 		.collect();
 	db_result[0]
+}
+
+///Hashes a string and formats it in the same way as the constructor in the rss module.
+pub fn hash_string(s:&str) -> String {
+	let mut h = DefaultHasher::new();
+	s.hash(&mut h);
+	let hash:u64 = h.finish();
+	format!("{:016x}", hash)
 }

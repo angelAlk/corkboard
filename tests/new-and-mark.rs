@@ -1,19 +1,9 @@
 use std::{
-	collections::hash_map::DefaultHasher,
-	hash::{Hash, Hasher},
 	str::from_utf8
 };
 
 mod utils;
 use utils::*;
-
-//Hashes a string and formats it in the same way as the constructor in the rss module.
-fn hash_string(s:&str) -> String {
-	let mut h = DefaultHasher::new();
-	s.hash(&mut h);
-	let hash:u64 = h.finish();
-	format!("{:016x}", hash)
-}
 
 #[test]
 fn new_then_mark() {

@@ -13,7 +13,7 @@ pub enum Operation {
 	///Show which feeds are new
 	New,
 	///Mark an item as read
-	Mark(String),
+	Mark(Vec<String>),
 	///Remove a feed from the db
 	Remove(String)
 }
@@ -43,7 +43,7 @@ pub fn parse_arguments(string_args:Vec<String>) -> Result<Operation> {
 		"up" => Ok(Operation::Up),
 		"feeds" => Ok(Operation::Feeds),
 		"new" => Ok(Operation::New),
-		"mark" if string_args.len() >= 3 => Ok(Operation::Mark(string_args[2].clone())),
+		"mark" if string_args.len() >= 3 => Ok(Operation::Mark(Vec::from(&string_args[2..]))),
 		"remove" if string_args.len() >= 3 => Ok(Operation::Remove(string_args[2].clone())),
 		_ => Err(ParseErr::NotACommand.into())
 	}
