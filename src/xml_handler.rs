@@ -35,9 +35,11 @@ impl error::Error for XmlError {
 /// Tries to find a direct child of the parent tag with the name _name_
 fn get_named_child<'a>(parent: &Node<'a, 'a>, name: &str) -> Option<Node<'a, 'a>> {
 	//Maybe we should be normalizing the strings before comparing them
+	//We check the namespace to make sure we aren't getting content inteded for another
+	//kind of app, like atom readers
 	parent
 		.children()
-		.find(|c| c.tag_name().name() == name)
+		.find(|c| c.tag_name().name() == name && c.tag_name().namespace().is_none())
 }
 
 fn get_text_from_child(parent: &Node, name: &str) -> Option<String> {
