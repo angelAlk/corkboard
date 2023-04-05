@@ -67,21 +67,24 @@ fn request_feed(feed_source: &str) -> Result<String> {
 fn add(database: &Database, url: &str) -> Result<()> {
 
 	//Handling possibly incomplete urls passed by user.
-	//The user url is preferred to an https base and https
-	//is preferred to an http one.
-	let xml_feed:String = request_feed(url)
-		.or_else(|_| { request_feed(&format!("{}{}", "https://", url)) })
-		.or_else(|_| { request_feed(&format!("{}{}", "http://", url)) })?;
+	//The user url is preferred to an https base and https is preferred to an http one.
+	let mut working_link: String = String::from(url);
+	let xml_feed =
+		request_feed(&working_link)
+		.or_else(|_| {
+			working_link = format!("{}{}", "http://", url);
+			request_feed(&working_link)})
+		.or_else(|_| {
+			working_link = format!("{}{}", "https://", url);
+			request_feed(&working_link) })?;
 
 	let mut channel = xml_to_rss(&xml_feed)
 		.with_context(|| "Could not process xml")?;
 
-	//TODO: should this line be here?
-	//Should we be using the channels announced url or the one we
-	//were originally passed ?
-	channel.link = String::from(url);
+	//We keep the users original url and only change it if we had to use another protocol to find the feed
+	channel.link = working_link;
 
-	if let None = channel.last_build_date {
+	if let None = channel.last_build_date {	
 		channel.last_build_date = Some(chrono::Utc::now())
 	}
 
