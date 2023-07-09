@@ -46,7 +46,8 @@ fn run_operation(op: Operation) -> Result<()> {
 		Operation::Feeds => feeds(&database),
 		Operation::New => new(&database),
 		Operation::Mark(hashes) => mark(&database, &hashes),
-		Operation::Remove(feed_url) => remove(&database, &feed_url)
+		Operation::Remove(feed_url) => remove(&database, &feed_url),
+		Operation::Help => print_help()
 		//,_ => Err(anyhow::anyhow!("Could not match the operation passed"))
 	}?;
 
@@ -182,8 +183,28 @@ fn mark(database: &Database, hash_string:&[String]) -> Result<()> {
 	Ok(())
 }
 
-//Remove feed and it's items from the database
+///Remove feed and it's items from the database
 fn remove(database: &Database, url:&str) -> Result<()> {
 	database.remove_channel(url)
 		.context("Removing for channel failed")
+}
+
+///Print the help message for the program
+fn print_help() -> Result<()> {
+	let msg: &str = "\
+Minimal RSS client
+
+usage: corkboard <command>
+
+Commands:
+  add <url>             Subscribe to a feed with url <url>.
+  up                    Update all feeds then display all the items/posts that were added.
+  feeds                 List all subscribed feeds.
+  new                   Show all items not marked as read (does not update channels).
+  mark <item-hash+>     Mark an item as read.
+  remove <url>          Unsuscribe from a feed and delete all of it's items from the database.
+  help                  Show this help message.
+";
+	println!("{msg}");
+	Ok(())
 }

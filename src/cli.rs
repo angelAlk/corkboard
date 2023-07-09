@@ -15,7 +15,9 @@ pub enum Operation {
 	///Mark an item as read
 	Mark(Vec<String>),
 	///Remove a feed from the db
-	Remove(String)
+	Remove(String),
+	///Print the help message for the program
+	Help
 }
 
 #[derive(Debug)]
@@ -45,6 +47,7 @@ pub fn parse_arguments(string_args:Vec<String>) -> Result<Operation> {
 		"new" => Ok(Operation::New),
 		"mark" if string_args.len() >= 3 => Ok(Operation::Mark(Vec::from(&string_args[2..]))),
 		"remove" if string_args.len() >= 3 => Ok(Operation::Remove(string_args[2].clone())),
+		"help" | "-h" | "--help" => Ok(Operation::Help),
 		_ => Err(ParseErr::NotACommand.into())
 	}
 }
