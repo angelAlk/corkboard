@@ -21,7 +21,12 @@ use anyhow::{Context, Result};
 use reqwest::blocking::Client;
 use url::Url;
 
-use std::env::args;
+use std::{
+	env::{self, args},
+	fs,
+	path::{Path, PathBuf}
+};
+
 use crate::{
 	cli::Operation,
 	db::Database,
@@ -38,7 +43,8 @@ fn main() -> Result<()> {
 
 ///Set up database and run operation defined by op
 fn run_operation(op: Operation) -> Result<()> {
-	let database = Database::setup("corkdb")?;
+	let database_path = find_database()?;
+	let database = Database::setup(database_path)?;
 
 	match op {
 		Operation::Add(url) => add(&database, &url),
@@ -52,6 +58,59 @@ fn run_operation(op: Operation) -> Result<()> {
 	}?;
 
 	Ok(())
+}
+
+///Determine where the corkboard database is or should be, return the path
+///
+///The database (that is just an sqlite file) may be on:
+///  0. If $CORKDB_TEST is set and true, then we just use "corkdb"
+///  1.	A custom path, defined by an environment variable $CORKDB,
+///    (full path including database name)
+///  2. In the XDG directory for program data: $XDG_DATA_HOME
+///  3. The default value for $XDG_DATA_HOME: $HOME/.local/share
+///  4. If all else fails, again use "./corkdb"
+fn find_database() -> Result<PathBuf> {
+	//0, testing environment
+	if let Ok(are_we_testing) = env::var("CORKDB_TEST") {
+		if &are_we_testing == "true" {
+			return Ok(Path::new("./corkdb").to_path_buf());
+		}
+	}
+
+	//1, custom path set with $CORKDB
+	if let Ok(custom_path) = env::var("CORKDB") {
+		return Ok(Path::new(&custom_path).to_path_buf());
+	}
+
+	//2, checking $XDG_DATA_HOME
+	if let Ok(xdg_data_home) = env::var("XDG_DATA_HOME") {
+		let xdg_path = Path::new(&xdg_data_home);
+		if xdg_path.exists() {
+			let corkboard_dir = xdg_path.join("./corkboard");
+			if !corkboard_dir.exists() {
+				fs::create_dir(corkboard_dir.clone())
+					.with_context(|| format!("Could not create directory at {corkboard_dir:?}"))?;
+			}
+			return Ok(corkboard_dir.join("./corkdb").to_path_buf());
+		}
+	}
+
+	//3, $HOME/.local/share
+	if let Ok(home_path) = env::var("HOME") {
+		let xdg_default_path = Path::new(&home_path).join(Path::new("./.local/share"));
+
+		if xdg_default_path.exists() {
+			let corkboard_dir = xdg_default_path.join("./corkboard");
+			if !corkboard_dir.exists() {
+				fs::create_dir(corkboard_dir.clone())
+					.with_context(|| format!("Could not create directory at {corkboard_dir:?}"))?;
+			}
+			return Ok(corkboard_dir.join("./corkdb").to_path_buf());
+		}
+	}
+
+	//4, basic behaviour
+	return Ok(Path::new("./corkdb").to_path_buf());
 }
 
 ///Request a feed with url parsing and error handling

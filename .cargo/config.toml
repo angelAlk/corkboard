@@ -1,0 +1,5 @@
+# For now we only use cargo's config to ensure we
+# are using the database at the project and not
+# the one at the users preferred place
+[env]
+CORKDB_TEST = "true"

@@ -1,5 +1,6 @@
 use std::{
 	collections::hash_map::DefaultHasher,
+	env,
 	fs,
 	hash::{Hash, Hasher},
 	path::Path,
@@ -48,6 +49,8 @@ pub fn run_cork(parameters: &[&str]) -> Output {
 	Command::new("cargo")
 		.args(&["run", "--quiet", "--"])
 		.args(parameters)
+		//Setting $CORKDB_TEST to True, so that corkboard will use "./corkdb" as the database path
+		.env("CORKDB_TEST", "true")
 		.output()
 		.expect("Cargo run failed")
 }

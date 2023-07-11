@@ -3,6 +3,8 @@
 use anyhow::{anyhow, Result};
 use rusqlite::{Connection, params};
 
+use std::path::Path;
+
 use crate::rss::{Channel, Item};
 
 ///Encapsulates a connection to the sqlite db
@@ -12,7 +14,7 @@ pub struct Database {
 }
 impl Database {
 	///Initialize or connect to a sqlite database
-	pub fn setup(db_path: &str) -> Result<Self> {
+	pub fn setup<P: AsRef<Path>>(db_path: P) -> Result<Self> {
 		let db = Connection::open(db_path)?;
 
 		//Channel entries
