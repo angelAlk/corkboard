@@ -27,7 +27,7 @@ fn new_then_mark() {
 	//we mark the article with title 'azz' as read.
 	//Here we are implicitly testing that if the title is present
 	//then it's the only input to the hash.
-	let mark_output = run_cork(&["mark", &hash_string("azz")]).status.success();
+	let mark_output = run_cork(&["markhash", &hash_string("azz")]).status.success();
 	assert!(mark_output);
 
 	//Get the items that we haven't read, we expect to only get 'bzz'

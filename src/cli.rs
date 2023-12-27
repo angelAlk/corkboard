@@ -13,7 +13,9 @@ pub enum Operation {
 	///Show which feeds are new
 	New,
 	///Mark an item as read
-	Mark(Vec<String>),
+	Mark(Vec<usize>),
+	///Mark an item as read, using it's hash
+	MarkHash(Vec<String>),
 	///Remove a feed from the db
 	Remove(String),
 	///Print the help message for the program
@@ -42,12 +44,30 @@ pub fn parse_arguments(string_args:Vec<String>) -> Result<Operation> {
 
 	match string_args[1].as_str() {
 		"add" if string_args.len() >= 3 => Ok(Operation::Add(string_args[2].clone())),
+
 		"up" => Ok(Operation::Up),
+
 		"feeds" => Ok(Operation::Feeds),
+
 		"new" => Ok(Operation::New),
-		"mark" if string_args.len() >= 3 => Ok(Operation::Mark(Vec::from(&string_args[2..]))),
+
+		"mark" if string_args.len() >= 3 => {
+			let positions: Result<Vec<_>, _>= string_args[2..].iter()
+				.map(|pos| str::parse::<usize>(&pos))
+				.collect();
+			Ok(Operation::Mark(positions?))
+			//Ok(Operation::Mark(Vec::from(&string_args[2..])))
+		},
+
+		"markhash" if string_args.len() > 2 => {
+			let hashes = string_args[2..].to_vec();
+			Ok(Operation::MarkHash(hashes))
+		},
+
 		"remove" if string_args.len() >= 3 => Ok(Operation::Remove(string_args[2].clone())),
+
 		"help" | "-h" | "--help" => Ok(Operation::Help),
+
 		_ => Err(ParseErr::NotACommand.into())
 	}
 }

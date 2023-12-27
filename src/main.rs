@@ -51,7 +51,8 @@ fn run_operation(op: Operation) -> Result<()> {
 		Operation::Up => up(&database),
 		Operation::Feeds => feeds(&database),
 		Operation::New => new(&database),
-		Operation::Mark(hashes) => mark(&database, &hashes),
+		Operation::Mark(positions) => mark_relative(&database, &positions),
+		Operation::MarkHash(hashes) => mark(&database, &hashes),
 		Operation::Remove(feed_url) => remove(&database, &feed_url),
 		Operation::Help => print_help()
 		//,_ => Err(anyhow::anyhow!("Could not match the operation passed"))
@@ -155,6 +156,9 @@ fn add(database: &Database, url: &str) -> Result<()> {
 	database.add_items(&channel, &channel.items)
 		.with_context(|| "Failed to add items")?;
 
+	database.generate_quickmarks(&channel.items)
+		.context("Failed to create quickmarks for the items")?;
+
 	Ok(())
 } 
 
@@ -194,6 +198,8 @@ fn up(database: &Database) -> Result<()> {
 			eprintln!("Could not insert new items into database");
 			continue ;
 		}
+		//I'm unsure if we should update quickmarks on up since we aren't displaying them ever ?
+		database.generate_quickmarks(&new_items)?;
 
 		println!("Updates from {}", c.link);
 		for i in new_items {
@@ -226,10 +232,21 @@ fn feeds(database: &Database) -> Result<()> {
 
 ///Show all the items not yet marked (read by the user)
 fn new(database: &Database) -> Result<()> {
-	let items = database.all_unmarked_items().context("Could not get items from database")?;
-	for i in items {
-		println!("{}", i);
+	database.reset_quickmarks()
+		.context("Failed to write to database, reset quickmarks")?;
+
+	let mut items:Vec<(Item, i32)> = database.all_unmarked_items_with_quickmarks()
+		.context("Could not get items from the database")?;
+	items.sort_by_key(|t| t.1);
+
+	for (item, position) in items {
+		//FIX: move displaying to cli module
+		println!("{} -> [{}] {}",
+				 position,
+				 item.link.as_ref().unwrap_or(&String::from("No link")),
+				 item.title_or_description);
 	}
+
 	Ok(())
 }
 
@@ -238,7 +255,30 @@ fn mark(database: &Database, hash_string:&[String]) -> Result<()> {
 	for hash in hash_string {
 		database.mark_as_read(hash, true)
 			.context("Could not mark the article")?;
+		database.remove_quickmark(hash)
+			.context("Could not delete quickmark associated with article")?;
 	}
+	Ok(())
+}
+
+///Mark an item in the database as read when given it's position
+///as printed by the _new_ command.
+fn mark_relative(database: &Database, positions:&[usize]) -> Result<()> {
+	//This is one of the places where I am unsure about how to manage errors
+	//I belive that for myself the easiest option is to just ignore
+	//failed mark attempts, but I can see how perhaps a user would prefer
+	//that the whole command fails.
+	//
+	//For now I am chosing to ignore failed marks and keep going.
+	//I am printing a message still.
+
+	for p in positions {
+		match database.mark_as_read_with_quickmark(*p) {
+			Ok(_) => { println!("Marked item {p}"); },
+			Err(e) => { println!("Could not mark {p} due to {e}. Moving on"); }
+		};
+	}
+
 	Ok(())
 }
 
@@ -267,3 +307,4 @@ Commands:
 	println!("{msg}");
 	Ok(())
 }
+
