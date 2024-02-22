@@ -11,7 +11,7 @@ enum XmlError {
 	NoChannelTag,
 	NoTitle,
 	NoLink,
-	NoDesc
+	_NoDesc
 }
 impl fmt::Display for XmlError {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
