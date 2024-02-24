@@ -163,7 +163,6 @@ fn add(database: &Database, url: &str) -> Result<()> {
 } 
 
 ///Get updates from all rss feeds, display the items that are new in the database
-//TODO: Add message if nothing is new
 fn up(database: &Database) -> Result<()> {
 	let client = Client::new();
 
@@ -194,8 +193,8 @@ fn up(database: &Database) -> Result<()> {
 			continue ;
 		}
 
-		if let Err(_) = database.add_items(&c, &new_items) {
-			eprintln!("Could not insert new items into database");
+		if let Err(db_e) = database.add_items(&c, &new_items) {
+			eprintln!("Could not insert new items into database: {db_e}");
 			continue ;
 		}
 		//I'm unsure if we should update quickmarks on up since we aren't displaying them ever ?

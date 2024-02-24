@@ -1,12 +1,12 @@
 use std::{
-	collections::hash_map::DefaultHasher,
 	env,
 	fs,
-	hash::{Hash, Hasher},
 	path::Path,
 	process::{Child, Command, Stdio, Output}
 };
+
 use rusqlite::Connection;
+use sha2::{Sha256, Digest};
 
 ///Deletes the database file if it's present
 pub fn ensure_new_database() {
@@ -75,8 +75,8 @@ pub fn count_items(db: &Connection) -> i64 {
 
 ///Hashes a string and formats it in the same way as the constructor in the rss module.
 pub fn hash_string(s:&str) -> String {
-	let mut h = DefaultHasher::new();
-	s.hash(&mut h);
-	let hash:u64 = h.finish();
+	let mut h = Sha256::new();
+	h.update(s.as_bytes());
+	let hash = h.finalize();
 	format!("{:016x}", hash)
 }

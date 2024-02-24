@@ -1,6 +1,6 @@
 //! Interface into a sqlite database
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use rusqlite::{Connection, params};
 
 use std::path::Path;
@@ -150,7 +150,7 @@ impl Database {
 			.query_row([&channel.link], |row| {row.get(0)})?;
 
 		let mut statement = self.db.prepare(
-			"INSERT OR IGNORE
+			"INSERT
 			INTO items (hash, title_or_desc, url, pub_date, read, channel)
 			VALUES (?, ?, ?, ?, ?, ?);"
 		)?;
@@ -163,7 +163,7 @@ impl Database {
 				i.pub_date,
 				i.read,
 				channel_id
-			])?;
+			]).context(i.title_or_description_hash.clone())?;
 		}
 
 		Ok(())

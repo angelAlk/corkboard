@@ -19,8 +19,7 @@ use chrono::{
 	offset::Utc,
 	DateTime
 };
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hasher, Hash};
+use sha2::{Sha256, Digest};
 
 ///Represents a single item in an RSS channel.
 ///
@@ -46,9 +45,9 @@ impl Item {
 	///
 	///We are using the default hasher for now but should probably move to a fixed one (say sha256).
 	pub fn new(title_or_desc: String, link: Option<String>, pub_date: Option<DateTime<Utc>>) -> Self {
-		let mut s = DefaultHasher::new();
-		title_or_desc.hash(&mut s);
-		let hash = s.finish();
+		let mut hasher = Sha256::new();
+		hasher.update(title_or_desc.as_bytes());
+		let hash = hasher.finalize();
 
 		Self {
 			title_or_description: title_or_desc,
