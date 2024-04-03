@@ -47,6 +47,9 @@ impl Item {
 	pub fn new(title_or_desc: String, link: Option<String>, pub_date: Option<DateTime<Utc>>) -> Self {
 		let mut hasher = Sha256::new();
 		hasher.update(title_or_desc.as_bytes());
+		if let Some(ref l) = link {
+			hasher.update(l.as_bytes());
+		}
 		let hash = hasher.finalize();
 
 		Self {

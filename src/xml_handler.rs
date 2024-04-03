@@ -78,7 +78,7 @@ pub fn xml_to_rss (xml_source: &str) -> anyhow::Result<Channel> {
 		.ok_or(XmlError::NoLink)?;
 	//Some feed generators might not add a description to the channel.
 	//While this is technically required by the spec I'd rather be able to parse them.
-	//This adds the disadvantage that some errors might go silent
+	//This adds the disadvantage that some errors might go ignored
 	let description = get_text_from_child(&channel_tag, "description")
 		.unwrap_or(String::new());
 

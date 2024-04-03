@@ -10,7 +10,10 @@ fn double_mark() {
     let _feed = Miniserve::launch("./assets/sample3.rss", None);
     assert!(run_cork(&["add", "http://localhost:8080"]).status.success());
 
-    let mark_result = run_cork(&["markhash", &hash_string("azz"), &hash_string("bzz")]);
+    let mark_result = run_cork(&[
+		"markhash",
+		&hash_strings(&["azz"]),
+		&hash_strings(&["bzz", "http://doesnotwork.zzzzzzz"])]);
     assert!(mark_result.status.success());
 
     //roundabout way of saying that the output should not show the previously marked items

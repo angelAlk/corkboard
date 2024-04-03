@@ -1,0 +1,13 @@
+<rss version="2.0">
+	<channel>
+		<title>Uncreative feed b</title>
+		<link>http://localhost/clash-b.rss</link>
+		<description>An uncreative feed</description>
+		<language>en</language>
+		<item>
+			<title>repeated</title>
+			<description>feed b</description>
+			<link>http://localhost/clash-b/b</link>
+		</item>
+	</channel>
+</rss>

@@ -80,3 +80,14 @@ pub fn hash_string(s:&str) -> String {
 	let hash = h.finalize();
 	format!("{:016x}", hash)
 }
+
+///Hashes many strings and formats them in the same way that the constructor in the rss module
+///does.
+pub fn hash_strings(s:&[&str]) -> String {
+	let mut h = Sha256::new();
+	for sub in s {
+		h.update(sub.as_bytes());
+	}
+	let hash = h.finalize();
+	format!("{:016x}", hash)
+}
