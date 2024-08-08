@@ -200,7 +200,7 @@ fn up(database: &Database) -> Result<()> {
 		//I'm unsure if we should update quickmarks on up since we aren't displaying them ever ?
 		database.generate_quickmarks(&new_items)?;
 
-		println!("Updates from {}", c.link);
+		println!("Updates from \"{}\" ({})", c.title, c.link);
 		for i in new_items {
 			println!("\t {} at {}", i.title_or_description, i.link.unwrap_or(String::from("<NO LINK>")));
 		}
