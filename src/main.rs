@@ -126,18 +126,21 @@ fn request_feed(feed_source: &str) -> Result<String> {
 
 ///Add a feed and all of it's items into the database
 fn add(database: &Database, url: &str) -> Result<()> {
+	//url normalization
+	//If protocol defined by user, then use it.
+	//If not, try https, then http
+	let (working_link, xml_feed) = match url.find("http") {
+		Some(idx) if idx==0 => (String::from(url), request_feed(url)?),
+		_ => {
+			let https_link = format!("https://{url}");
+			let http_link = format!("http://{url}");
 
-	//Handling possibly incomplete urls passed by user.
-	//The user url is preferred to an https base and https is preferred to an http one.
-	let mut working_link: String = String::from(url);
-	let xml_feed =
-		request_feed(&working_link)
-		.or_else(|_| {
-			working_link = format!("{}{}", "http://", url);
-			request_feed(&working_link)})
-		.or_else(|_| {
-			working_link = format!("{}{}", "https://", url);
-			request_feed(&working_link) })?;
+			match request_feed(&https_link) {
+				Ok(https_feed) => (https_link, https_feed),
+				Err(_) =>         ( http_link.clone(), request_feed(&http_link)? )
+			}
+		}
+	};
 
 	let mut channel = xml_to_rss(&xml_feed)
 		.with_context(|| "Could not process xml")?;
