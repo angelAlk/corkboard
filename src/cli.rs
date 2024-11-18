@@ -56,7 +56,6 @@ pub fn parse_arguments(string_args:Vec<String>) -> Result<Operation> {
 				.map(|pos| str::parse::<usize>(&pos))
 				.collect();
 			Ok(Operation::Mark(positions?))
-			//Ok(Operation::Mark(Vec::from(&string_args[2..])))
 		},
 
 		"markhash" if string_args.len() > 2 => {

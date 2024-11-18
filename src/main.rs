@@ -55,7 +55,6 @@ fn run_operation(op: Operation) -> Result<()> {
 		Operation::MarkHash(hashes) => mark(&database, &hashes),
 		Operation::Remove(feed_url) => remove(&database, &feed_url),
 		Operation::Help => print_help()
-		//,_ => Err(anyhow::anyhow!("Could not match the operation passed"))
 	}?;
 
 	Ok(())
@@ -302,7 +301,7 @@ Commands:
   up                    Update all feeds then display all the items/posts that were added.
   feeds                 List all subscribed feeds.
   new                   Show all items not marked as read (does not update channels).
-  mark <item-hash+>     Mark an item as read.
+  mark <number>         Mark an item at position <number> as read. Positions come from corkboard new.
   remove <url>          Unsuscribe from a feed and delete all of it's items from the database.
   help                  Show this help message.
 ";
