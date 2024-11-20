@@ -52,6 +52,7 @@ fn run_operation(op: Operation) -> Result<()> {
 		Operation::Feeds => feeds(&database),
 		Operation::New => new(&database),
 		Operation::Mark(positions) => mark_relative(&database, &positions),
+		Operation::MarkAll => mark_all(&database),
 		Operation::MarkHash(hashes) => mark(&database, &hashes),
 		Operation::Remove(feed_url) => remove(&database, &feed_url),
 		Operation::Help => print_help()
@@ -259,6 +260,22 @@ fn mark(database: &Database, hash_string:&[String]) -> Result<()> {
 		database.remove_quickmark(hash)
 			.context("Could not delete quickmark associated with article")?;
 	}
+	Ok(())
+}
+
+///Mark all items as read.
+fn mark_all(database: &Database) -> Result<()> {
+	let items = database.all_unmarked_items()
+		.context("Could not get open items from database")?;
+
+	for item in items {
+		database.mark_as_read(&item.title_or_description_hash, true)
+			.context("Coulld not mark the item")?;
+	}
+
+	database.reset_quickmarks()
+		.context("Failed to reset quickmarks")?;
+
 	Ok(())
 }
 

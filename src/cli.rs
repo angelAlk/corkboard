@@ -16,6 +16,8 @@ pub enum Operation {
 	Mark(Vec<usize>),
 	///Mark an item as read, using it's hash
 	MarkHash(Vec<String>),
+	///Mark all open items as read.
+	MarkAll,
 	///Remove a feed from the db
 	Remove(String),
 	///Print the help message for the program
@@ -32,7 +34,7 @@ impl std::fmt::Display for ParseErr {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			ParseErr::NoArguments => write!(f, "No arguments passed to the program"),
-			ParseErr::NotACommand => write!(f, "The argument passed is not a valid command")
+			ParseErr::NotACommand => write!(f, "Not a valid command")
 		}
 	}
 }
@@ -50,6 +52,10 @@ pub fn parse_arguments(string_args:Vec<String>) -> Result<Operation> {
 		"feeds" => Ok(Operation::Feeds),
 
 		"new" => Ok(Operation::New),
+
+		"mark" if string_args.len() == 3 && string_args[2] == "--all" => {
+			Ok(Operation::MarkAll)
+		},
 
 		"mark" if string_args.len() >= 3 => {
 			let positions: Result<Vec<_>, _>= string_args[2..].iter()
