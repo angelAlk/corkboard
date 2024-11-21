@@ -319,6 +319,7 @@ Commands:
   feeds                 List all subscribed feeds.
   new                   Show all items not marked as read (does not update channels).
   mark <number>         Mark an item at position <number> as read. Positions come from corkboard new.
+  mark --all            Mark all items as read.
   remove <url>          Unsuscribe from a feed and delete all of it's items from the database.
   help                  Show this help message.
 ";

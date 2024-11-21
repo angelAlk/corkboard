@@ -1,4 +1,43 @@
-//! Interface into a sqlite database
+//! Interface into the corkboard sqlite database
+//!
+//! We have three tables: _channels_, _items_ and _quickmarks_
+//!
+//! _channels_ stores the RSS feeds and owns many (or zero) _items_.
+//!
+//! _items_ store specific entries from a feed, are owned by _channels_.
+//!
+//! _quickmarks_ holds the mark system (that simplifies the usage of **corkboard new**)
+//!
+//! The quickmark system works as follows:
+//!
+//! To make marking an item as read easier we use an
+//! assigned number instead of the item's hash.
+//! We store those assigned numbers (which are ordered by publishing date)
+//! in this table.
+//!
+//! If we expect quickmarks to be ordered by publishing date then
+//! couldn't we just sort by date and use the positions on the vec
+//! to know what to mark ? Why have another table ?
+//!
+//! We want these "quickmarks" to be consistent between runs of the program.
+//! As an example, if the user runs:
+//!
+//! __new__
+//!
+//! __add__
+//!
+//! __mark__
+//!
+//! Then __mark__ could fail or mark as read another different item than
+//! the intended one. Because __add__ inserted new items into the publishing order.
+//!
+//! Quickmark rules:
+//! 1. If __new__ is run then all marks are reset (using publishing order).
+//! 	(Only unmarked items are considered).
+//! 2. __add__ and __up__ add quickmarks at the end, don't change older ones.
+//! 3. __mark__ & __mark all__ delete the quickmark associated with it.
+//! 4. __remove__ deletes all the quickmarks associated with it, does not affect the rest.
+//! 5. All other commands don't alter the quickmarks.
 
 use anyhow::{anyhow, Context, Result};
 use rusqlite::{Connection, params};
@@ -39,31 +78,7 @@ impl Database {
 				FOREIGN KEY(channel) REFERENCES channels(id) ON DELETE CASCADE
 			);", [])?;
 
-		//To make marking an item as read easier we use an
-		//assigned number instead of the item's hash.
-		//We store those assigned numbers (which are ordered by publishing date)
-		//in this table.
-		//
-		//If we expect quickmarks to be ordered by publishing date then
-		//couldn't we just sort by date and use the positions on the vec
-		//to know what to mark ? Why have another table ?
-		//
-		//We want these "quickmarks" to be consistent between runs of the program.
-		//As an example, if the user runs:
-		//__new__
-		//__add__
-		//__mark__
-		//
-		//Then __mark__ could fail or mark as read another different item than
-		//the intended one. Because __add__ inserted new items into the publishing order.
-		//
-		//Quickmark rules:
-		//1. If __new__ is run then all marks are reset (using publishing order).
-		//	(Only unmarked items are considered).
-		//2. __add__ and __up__ add quickmarks at the end, don't change older ones.
-		//3. __mark__ deletes the quickmark associated with it.
-		//4. __remove__ deletes all the quickmarks associated with it, does not affect the rest.
-		//5. All other commands don't alter the quickmarks.
+		//Quickmarks
 		db.execute(
 			"CREATE TABLE IF NOT EXISTS quickmarks (
 				position INTEGER,
