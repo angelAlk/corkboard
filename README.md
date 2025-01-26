@@ -8,8 +8,6 @@ A minimalist RSS feed client for your terminal.
 
 - Uses SQLite as the backing database, so you may interface with your data however you like.
 
-**WORK IN PROGRESS**
-
 ## Installing
 
 Requires _cargo_ and _rustc_
@@ -65,3 +63,7 @@ For both of these the sqlite file is at: `<LOCATION>/corkboard/corkdb`.
 
 Use a custom database path by setting the variable (in your shell environment): `$CORKDB`
 
+## Note on Atom support
+
+Atom is "partially" supported, in the sense that one may subscribe to Atom feeds as if they were RSS feeds,
+however, no features specific to Atom are supported.

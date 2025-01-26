@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+	<title>Another Atom feed</title>
+	<link rel="self" href="http://localhost"/>
+	<link rel="alternate" href="http://localhost/IGNORE"/>
+	<updated>2025-01-25T19:03:00</updated>
+	<id>http://localhost</id>
+	<entry>
+		<title>First article</title>
+		<link rel="alternate" href="http://localhost/first"></link>
+		<id>http://localhost/first</id>
+		<updated>2025-01-24T19:03:00</updated>
+	</entry>
+	<entry>
+		<title>Second article</title>
+		<link rel="alternate" href="http://localhost/second"></link>
+		<id>http://localhost/second</id>
+		<updated>2025-01-24T19:03:00</updated>
+	</entry>
+</feed>
