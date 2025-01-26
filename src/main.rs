@@ -4,7 +4,7 @@
 //! (without being too intrusive with what hasn't been)
 //!
 //! ```text
-//! add <url>		<- Add a new RSS feed to the app.
+//! add <url>		<- Add a new RSS feed (or Atom) to the app.
 //! up				<- Update all feeds, show the new articles.
 //! mark <item>		<- Mark article/item as read.
 //! new				<- Show all articles that haven't been marked.
